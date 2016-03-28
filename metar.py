@@ -1,25 +1,33 @@
 '''
 AUTHOR: Byron Himes
-MODIFIED: 25 March 2016
+MODIFIED: 28 March 2016
 DESCRIPTION: Takes a METAR reading as input and outputs the interpretation (meaning).
 FILES: metar.py
 '''
+
+# define a dictionary to label the fields dynamically
+fields = {}
 
 def getReading():
     reading = input("Enter METAR reading: ")
     return reading
 
-def getReportType(metar):
+def isReportType(key, d):
     pass
 
-def getStationID(metar):
+def isStationID(key, d):
     pass
-
-def interpret(metar):
-    # Format is as follows:
-    # TYPE ID TIME WIND VIS WX SKY T/TD ALT REMARK
 
 
 if __name__ == "__main__":
+
+    # get raw metar reading
     metar_reading = getReading()
+
+    # populate the fields dictionary
+    for i in (0, len(metar_reading)):
+        fields[i] = ""
+
+
+
     
