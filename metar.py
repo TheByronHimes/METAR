@@ -40,8 +40,16 @@ def dateTime(fText, key, d):
     # Z is a string literal which indicates Zulu time.
     dtPattern = re.compile('([0-3][0-9])([0-2][0-9][0-5][0-9])Z')
     match = re.match(dtPattern, fText)
+    
     if match != None:
-        d[key] = None
+        toPrint = ""
+        mText = match.group()
+        day = mText[0:2]
+        hour = mText[2:4]
+        minute = mText[4:6]
+        toPrint += "\n\tDay of Month: " + day
+        toPrint += "\n\tTime: " + hour + ":" + minute
+        d[key] = toPrint
         return True
     else:
         return False
@@ -52,7 +60,7 @@ def reportModifier(fText, key, d):
     modPattern = re.compile('(AUTO|COR)')
     match = re.match(modPattern, fText)
     if match != None:
-        d[key] = fText[match.start():match.end()]
+        d[key] = match.group()
         return True
     else:
         return False
@@ -125,6 +133,7 @@ def windGroup(fText, key, d):
             angle1 = vrb[:vrb.find('V')] + " degrees "
             angle2 = vrb[vrb.find('V')+1:] + " degrees "
             toPrint += "\n\tDirection varying from " + angle1 + "to " + angle2
+        d[key] = toPrint
         return True
     else:
         return False
