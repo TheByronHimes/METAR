@@ -140,7 +140,32 @@ def windGroup(fText, key, d):
     else:
         return False
 
-
+def visibilityGroup(fText, key, d):
+    # Looks for and culls visibility group information from metar string
+    # Format: VVVVVSM
+    # VVVVV = whole numbers, fractions, or mixed fractions.
+    #     example values:
+    #     M 1/4 where M signifies "less than"
+    #     4 3/4
+    #     1/4
+    # SM = literal meaning "Statute Miles"
+    visPattern = re.compile(
+        'M?(([1-9]\s[1-9]/[1-9])|([1-9]/[1-9])|([0-9]{1,2}))SM'
+    )
+    visMatch = re.match(visPatter, fText)
+    if visMatch != None:
+        toPrint = ""
+        mText = visMatch.group()
+        mText = mText[:mText.find("SM")]
+        m_loc = mText.find("M")
+        if m_loc > -1:
+            toPrint += "Less than " + mText[m_loc+1:] + " statute miles"
+        elif m_loc == -1:
+            toPrint += mText + "statute miles"
+        d[key] = toPrint
+        return True
+    else:
+        return False
     
 
 # Program entry:
@@ -170,3 +195,9 @@ if __name__ == "__main__":
     dateTime(metar, keys[1], fields)
     reportModifier(metar, keys[2], fields)
     windGroup(metar, keys[3], fields)
+    
+
+    for k in keys:
+        if k in fields.keys():
+            print(k, fields[k])
+
