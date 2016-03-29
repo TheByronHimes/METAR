@@ -11,7 +11,7 @@ import re
 fields = {}
 
 def getReading():
-    # this function prompts the user to enter the data
+    # this function prompts the user to enter the metar report string
     # will modify later to provide options for file input or CL input
     reading = input("Enter METAR reading: ").upper()
 
@@ -21,7 +21,7 @@ def getReading():
     return reading
 
 def stationID(fText, key, d):
-    # Returns bool indicating whether the field is "Station ID"
+    # Looks for and culls station id information from metar string
     # Format: AAAA (four alpha chars)
     idPattern = re.compile('[A-Z]{4}\s')
     match = re.match(idPattern, fText)
@@ -32,7 +32,7 @@ def stationID(fText, key, d):
         return False
 
 def dateTime(fText, key, d):
-    # Returns bool indicating whether the field is "Date and Time of Report"
+    # Looks for and culls date & time information from metar string
     # Format: DDTTttZ
     # DD = day of the month (01 - 31)
     # TT = hour of the report (00 - 23)
@@ -55,7 +55,7 @@ def dateTime(fText, key, d):
         return False
 
 def reportModifier(fText, key, d):
-    # Returns bool indicating whether the field is "Report Modifier"
+    # Looks for and culls report modifier information from metar string
     # Values: "AUTO" or "COR"
     modPattern = re.compile('(AUTO|COR)')
     match = re.match(modPattern, fText)
@@ -66,7 +66,7 @@ def reportModifier(fText, key, d):
         return False
 
 def windGroup(fText, key, d):
-    # Returns bool indicating whether the field is "Wind Group"
+    # Looks for and culls wind group information from metar string
     # Format: dddff(f)GmmmKT_nnnVxxx
     # ddd = wind direction (000 - 369) OR "VRB"
     # ff(f) = wind speed (00-999)
@@ -79,7 +79,9 @@ def windGroup(fText, key, d):
     # xxx = upper end of variability range (000 - 359)
 
     # try to match the entire field set first
-    windPattern = re.compile('((VRB|[0-3][0-9]{1,2})([0-9]{2,3})(G[0-9]{2,3})?KT|00000KT)(\s[0-3][0-9]{1,2}V[0-3][0-9]{1,2})?')
+    windPattern = re.compile(
+        '((VRB|[0-3][0-9]{1,2})([0-9]{2,3})(G[0-9]{2,3})?KT|00000KT)(\s[0-3][0-9]{1,2}V[0-3][0-9]{1,2})?'
+    )
     match = re.match(windPattern, fText)
 
     # if found, break it down into its subgroups for easy printing later
@@ -137,7 +139,8 @@ def windGroup(fText, key, d):
         return True
     else:
         return False
-        
+
+
     
 
 # Program entry:
