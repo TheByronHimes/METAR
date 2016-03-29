@@ -40,7 +40,7 @@ def isDateTime(fText, key, d):
     # DD = day of the month (01 - 31)
     # TT = hour of the report (00 - 23)
     # tt = minute of the report (00 - 59)
-    # Z is a char literal which indicates Zulu time..
+    # Z is a string literal which indicates Zulu time.
 
     # Validate field text length
     if len(fText) > 7 or len(fText) < :
@@ -74,9 +74,23 @@ def isReportModifier(fText, key, d):
     else:
         return False
 
-def isWindGroup(fText, key, d):
+def isWindGroup1(fText, key, d):
     # Returns bool indicating whether the field is "Wind: "
-    # Format: dddff(f)GmmmKT_nnnVxxx
+    # Format: dddff(f)GmmmKT
+    # ddd = wind direction (000 - 369) OR "VRB"
+    # ff(f) = wind speed (01-999)
+    # G = string literal indicating "Gust"
+    # mmm = wind gust speed (000 - 999)
+    # KT = string literal indicating "knots"
+
+def isWindGroup2(fText, key, d):
+    # Returns bool indicating whether the field is variable high speed wind info
+    # This will be appended to WindGroup1 information with a space in between if
+    #     present
+    # Format: nnnVxxx
+    # nnn = lower end of variability range (000 - 359)
+    # V = string literal indicating "variable" (haha)
+    # xxx = upper end of variability range (000 - 359)
     
 
 # Program entry:
