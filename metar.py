@@ -1,6 +1,6 @@
 '''
 AUTHOR: Byron Himes
-MODIFIED: 29 March 2016
+MODIFIED: 30 March 2016
 DESCRIPTION: Takes a METAR reading as input and outputs the interpretation (meaning).
 FILES: metar.py
 '''
@@ -166,7 +166,72 @@ def visibilityGroup(fText, key, d):
         return True
     else:
         return False
+
+def runwayVisibilityRange(fText, key, d):
+    # Looks for and culls the runway visibility information from metar string
+    # 2 Formats: RDD(D)/VVVVFT or RDD(D)/nnnnVxxxxFT
+    # R = string literal indicating that the runway number follows next
+    # DD = integer indicating the runway number (00-99)
+    # D = [R | L | C] indicating runway approach direction.
+    # / = string literal to separate runway no. and constant reportable value
+    # VVVV = constant reportable value
+    # FT = string literal indicating "feet"
+    # nnnn = lowest reportable value in feet
+    # V = string literal separating lowest and highest values
+    # xxxx = highest reportable value in feet
+    shortPattern = re.compile('(R[0-9]{2}[CRL]?/[0-9]{4}FT)')
+    longPattern = re.compile('(R[0-9]{2}[CLR]?/[0-9]{4}V[0-9]{4}FT)')
+
+    #try to match long pattern first, then short pattern
+    longMatch = re.match(longPattern, fText)
+    shortMatch = re.match(shortPattern, fText)
+    if longMatch == None and shortMatch == None:
+        return False
+    elif shortMatch != None:
+        # get short pattern data
+        toString = ""
+        mText = shortMatch.group()
+
+        # strip the 'R' from the front of the string
+        mText = mText[1:]
+
+        # retrieve and strip DD(D) info
+        DD = mText[:mText.find("/")]
+        mText = mText[mText.find("/")+1:]
+        toString += "\n\tRunway Number: " + DD
+        
+        # retrieve constant reportable value
+        VVVV = mText[:mText.find("FT")]
+        toString += "\n\tVisibility constant at: " + VVVV
+
+        # store output string in dictionary
+        d[key] = toString
+        return True
     
+    elif longMatch != None:
+        # get long pattern data
+        toString = ""
+        mText = longMatch.group()
+
+        # strip the 'R' from the front of the string
+        mText = mText[1:]
+
+        # retrieve and strip runway number info, DD(D)
+        DD = mText[:mText.find("/")]
+        mText = mText[mText.find("/")+1:]
+        toString += "\n\tRunway Number: " + DD
+
+        # retrieve and strip lowest reportable value, nnnn
+        nnnn = mText[:mText.find("V")]
+        mText = mText[mText.find("V")+1:]
+
+        # retrieve highest reportable value, xxxx
+        xxxx = mText[:mText.find("FT")]
+        toString = "\n\tVisibility varying from " + nnnn + "ft - " + xxxx + "ft"
+
+        # store output string in dictionary
+        d[key] = toString
+        return True    
 
 # Program entry:
 if __name__ == "__main__":
