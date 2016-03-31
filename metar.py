@@ -26,7 +26,7 @@ def stationID(fText, key, d):
     idPattern = re.compile('[A-Z]{4}\s')
     match = re.search(idPattern, fText)
     if match != None:
-        d[key] = fText[match.start():match.end()]
+        d[key] = "\n\t" + match.group()
         return True
     else:
         return False
@@ -38,7 +38,7 @@ def dateTime(fText, key, d):
     # TT = hour of the report (00 - 23)
     # tt = minute of the report (00 - 59)
     # Z is a string literal which indicates Zulu time.
-    dtPattern = re.compile('([0-3][0-9])([0-2][0-9][0-5][0-9])Z')
+    dtPattern = re.compile('([0-3]\d)([0-2]\d[0-5]\d)Z')
     match = re.search(dtPattern, fText)
     
     if match != None:
@@ -60,7 +60,7 @@ def reportModifier(fText, key, d):
     modPattern = re.compile('(AUTO|COR)')
     match = re.search(modPattern, fText)
     if match != None:
-        d[key] = match.group()
+        d[key] = "\n\t" + match.group()
         return True
     else:
         return False
@@ -80,7 +80,7 @@ def windGroup(fText, key, d):
 
     # try to match the entire field set first
     windPattern = re.compile(
-        '((VRB|[0-3][0-9]{1,2})([0-9]{2,3})(G[0-9]{2,3})?KT|00000KT)(\s[0-3][0-9]{1,2}V[0-3][0-9]{1,2})?'
+        '((VRB|[0-3]\d{1,2})(\d{2,3})(G\d{2,3})?KT|00000KT)(\s[0-3]\d{1,2}V[0-3]\d{1,2})?'
     )
     match = re.search(windPattern, fText)
 
@@ -91,7 +91,7 @@ def windGroup(fText, key, d):
         mText = match.group()
 
         # retrieve and strip direction info (ddd)
-        dirPattern = re.compile('(VRB|[0-3][0-9]{1,2})')
+        dirPattern = re.compile('(VRB|[0-3]\d{1,2})')
         dirMatch = re.search(dirPattern, mText)
         if dirMatch != None:
             ddd = dirMatch.group()
@@ -103,7 +103,7 @@ def windGroup(fText, key, d):
             mText = mText[dirMatch.end()+1:]
 
         # retrieve and strip wind speed info (ff(f))
-        speedPattern = re.compile('([0-9]{2,3})')
+        speedPattern = re.compile('(\d{2,3})')
         speedMatch = re.search(speedPattern, mText)
         if speedMatch != None:
             fff = int(speedMatch.group())
@@ -114,7 +114,7 @@ def windGroup(fText, key, d):
             mText = mText[speedMatch.end()+1:]
 
         # retrieve and strip wind gust info (Gmmm)           
-        gustPattern = re.compile('(G[0-9]{2,3})')
+        gustPattern = re.compile('(G\d{2,3})')
         gustMatch = re.search(gustPattern, mText)
         if gustMatch != None:
             # the G is a literal, so we're only interested in the speed (mmm)
@@ -128,7 +128,7 @@ def windGroup(fText, key, d):
             mText = mText[kt_loc + 2:]
 
         # retrieve and strip variable wind range info (nnnVxxx)
-        vrbPattern = re.compile('([0-3][0-9]{1,2}V[0-3][0-9]{1,2})')
+        vrbPattern = re.compile('([0-3]\d{1,2}V[0-3]\d{1,2})')
         vrbMatch = re.search(vrbPattern, mText)
         if vrbMatch != None:
             vrb = vrbMatch.group()
@@ -150,7 +150,7 @@ def visibilityGroup(fText, key, d):
     #     1/4
     # SM = literal meaning "Statute Miles"
     visPattern = re.compile(
-        'M?(([1-9]\s[1-9]/[1-9])|([1-9]/[1-9])|([0-9]{1,2}))SM'
+        'M?(([1-9]\s[1-9]/[1-9])|([1-9]/[1-9])|(\d{1,2}))SM'
     )
     visMatch = re.search(visPattern, fText)
     if visMatch != None:
@@ -161,7 +161,7 @@ def visibilityGroup(fText, key, d):
         if m_loc > -1:
             toPrint += "Less than " + mText[m_loc+1:] + " statute miles"
         elif m_loc == -1:
-            toPrint += mText + " statute miles"
+            toPrint += "\n\t" + mText + " statute miles"
         d[key] = toPrint
         return True
     else:
@@ -179,8 +179,8 @@ def runwayVisibilityRange(fText, key, d):
     # nnnn = lowest reportable value in feet
     # V = string literal separating lowest and highest values
     # xxxx = highest reportable value in feet
-    shortPattern = re.compile('(R[0-9]{2}[CRL]?/[0-9]{4}FT)')
-    longPattern = re.compile('(R[0-9]{2}[CLR]?/[0-9]{4}V[0-9]{4}FT)')
+    shortPattern = re.compile('(R\d{2}[CRL]?/\d{4}FT)')
+    longPattern = re.compile('(R\d{2}[CRL]?/\d{4}V\d{4}FT)')
 
     #try to match long pattern first, then short pattern
     longMatch = re.search(longPattern, fText)
@@ -238,6 +238,50 @@ def presentWeather(fText, key, d):
     # Format: w'w'
     pass
 
+def skyCondition(fText, key, d):
+    # Looks for and culls sky condition information from metar string
+    # Format: NNNhhh OR VVsss OR SKC|CLR
+    # NNN = amount of sky cover (3 letters)
+    # hhh = height of sky cover layer
+    # VV = string literal indicating "indefinite ceiling"
+    # sss = vertical visibility into indefinite ceiling
+    # SKC = string literal used by manual stations = "clear skies"
+    # CLR = string literal used by automated stations = "clear skies"
+    # NOTE: may sky conditions groups may be present in the metar body
+
+    skyPattern = re.compile('[A-Z]{3}\d{3}')
+    vertPattern = re.compile('VV\d{3}')
+    clearPattern = re.compile('SKC|CLR')
+    skyMatches = re.findall(skyPattern, fText)
+    vertMatches = re.findall(vertPattern, fText)
+    clearMatches = re.findall(clearPattern, fText)
+    
+    if len(skyMatches) == 0 and len(vertMatches) == 0 and len(clearMatches) == 0:
+        return False
+    else:
+        toString = ""
+        for i in skyMatches:
+            if i[:3] == "FEW":
+                toString += "\n\tFew clouds at "
+                toString += str(int(i[3:]) * 100) + "ft"
+            elif i[:3] == "SCT":
+                toString += "\n\tScattered clouds at "
+                toString += str(int(i[3:]) * 100) + "ft"
+            elif i[:3] == "BKN":
+                toString += "\n\tBroken clouds at "
+                toString += str(int(i[3:]) * 100) + "ft"
+            elif i[:3] == "OVC":
+                toString += "Overcast at "
+                toString += str(int(i[3:]) * 100) + "ft"
+        for i in vertMatches:
+            toString += "\n\tIndefinite ceiling with visibility up to "
+            toString += str(int(i[3:]) * 100) + "ft"
+        for i in clearMatches:
+            toString += "\n\tClear skies"
+        d[key] = toString
+        return True
+    
+
 # Program entry:
 if __name__ == "__main__":
 
@@ -267,6 +311,8 @@ if __name__ == "__main__":
     windGroup(metar, keys[3], fields)
     visibilityGroup(metar, keys[4], fields)
     runwayVisibilityRange(metar, keys[5], fields)
+    # presentWeather(metar, keys[5], fields) not implemented yet
+    skyCondition(metar, keys[7], fields)
     
 
     for k in keys:
