@@ -1,6 +1,6 @@
 '''
 AUTHOR: Byron Himes
-MODIFIED: 30 March 2016
+MODIFIED: 31 March 2016
 DESCRIPTION: Takes a METAR reading as input and outputs the interpretation (meaning).
 FILES: metar.py
 '''
@@ -342,19 +342,27 @@ def tempDewPoint(fText, key, d):
         mText = mText[1:]
 
         # get temperature and its sign, then strip that info from mText
-        temp = str(float(mText[1:4])/10)
         if mText[0] == '1':
-            toString += "\n\tTemperature: -" + temp + "ºC"
+            temp_Celcius = -1 * float(mText[1:4])/10
+            temp_Fahrenheit = temp_Celcius * (9/5) + 32
+            toString += "\n\tTemperature: " + str(temp_Celcius) + "ºC, "
+            toString += "%.f" % temp_Fahrenheit + "ºF"
         elif mText[0] == '0':
-            toString += "\n\tTemperature: " + temp + "ºC"
+            temp_Celcius = float(mText[1:4])/10
+            temp_Fahrenheit = temp_Celcius * (9/5) + 32
+            toString += "\n\tTemperature: " + str(temp_Celcius) + "ºC, "
+            toString += "%.f" % temp_Fahrenheit + "ºF"
         mText = mText[4:]
 
         # get dew point and its sign
-        dp = str(float(mText[1:])/10)
+        dp_Celcius = float(mText[1:])/10
+        dp_Fahrenheit = dp_Celcius * (9/5) + 32
         if mText[0] == '1':
-            toString += "\n\tDew Point: -" + dp + "ºC"
+            toString += "\n\tDew Point: -" + str(dp_Celcius) + "ºC, "
+            toString += "%.f" % dp_Fahrenheit + "ºF"
         elif mText[0] == '0':
-            toString += "\n\tDew Point: " + dp + "ºC"
+            toString += "\n\tDew Point: " + str(dp_Celcius) + "ºC, "
+            toString += "%.f" % dp_Fahrenheit + "ºF"
 
         # store output in dictionary
         d[key] = toString
