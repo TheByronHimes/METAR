@@ -290,7 +290,7 @@ def tempDewPoint(fText, key, d):
     # T'T'T' = temperature (000-999)
     # D'D'D' = dew point temperature (000-999)
     tdPattern = re.compile('T[01]\d{3}[01]\d{3}')
-    tdMatch = re.search(tdPattern, fText)KSGF 311352Z AUTO 24011KT 10SM BKN007 BKN016 16/14 A2954 RMK AO2 SLP994 T01610139
+    tdMatch = re.search(tdPattern, fText)
     if tdMatch != None:
         # if temp and dew point is reported, get the information
         toString = ""
@@ -300,18 +300,18 @@ def tempDewPoint(fText, key, d):
         mText = mText[1:]
 
         # get temperature and its sign, then strip that info from mText
-        temp = mText[1:4]
-        if mText[0] == 1:
+        temp = str(float(mText[1:4])/10)
+        if mText[0] == '1':
             toString += "\n\tTemperature: -" + temp + "ºC"
-        elif mText[0] == 0:
+        elif mText[0] == '0':
             toString += "\n\tTemperature: " + temp + "ºC"
         mText = mText[4:]
 
         # get dew point and its sign
-        dp = mText[1:]
-        if mText[0] == 1:
+        dp = str(float(mText[1:])/10)
+        if mText[0] == '1':
             toString += "\n\tDew Point: -" + dp + "ºC"
-        elif mText[0] == 0:
+        elif mText[0] == '0':
             toString += "\n\tDew Point: " + dp + "ºC"
 
         # store output in dictionary
