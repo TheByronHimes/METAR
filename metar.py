@@ -23,6 +23,9 @@ def getReading():
 def degreesToDirection(i):
     # This function takes an integer, i, and converts it to the corresponding
     # compass direction, d, where 0 degrees is N for North
+    if type(i) == str:
+        i = int(i)
+    
     if 0 <= i < 11 or 349 <= i < 360:
         d = "N"
     elif 11 <= i < 34:
@@ -136,7 +139,7 @@ def windGroup(fText, key, d):
             # if ddd is VRB, change it to read "Variable" for the user's ease
             if ddd == "VRB":
                 ddd = "Variable"
-            toPrint += "\n\tDirection: " + ddd + " degrees"
+            toPrint += "\n\tDirection: " + degreesToDirection(int(ddd))
             mText = mText[dirMatch.end()+1:]
 
         # retrieve and strip wind speed info (ff(f))
@@ -398,3 +401,4 @@ if __name__ == "__main__":
         if k in fields.keys():
             print(k, fields[k])
 
+x = input("\n\n\t\tPress key to continue")
