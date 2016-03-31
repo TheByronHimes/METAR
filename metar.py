@@ -271,7 +271,7 @@ def skyCondition(fText, key, d):
                 toString += "\n\tBroken clouds at "
                 toString += str(int(i[3:]) * 100) + "ft"
             elif i[:3] == "OVC":
-                toString += "Overcast at "
+                toString += "\n\tOvercast at "
                 toString += str(int(i[3:]) * 100) + "ft"
         for i in vertMatches:
             toString += "\n\tIndefinite ceiling with visibility up to "
@@ -280,7 +280,45 @@ def skyCondition(fText, key, d):
             toString += "\n\tClear skies"
         d[key] = toString
         return True
-    
+
+def tempDewPoint(fText, key, d):
+    # Looks for and culls temperature and dew point info from METAR (fText)
+    # Format: TsT'T'T'sD'D'D'
+    # NOTE: temps are reported in degrees celcius
+    # T = string literal indicating "temperature"
+    # s = sign of the temperature and dew point (1 for - or 0 for -)
+    # T'T'T' = temperature (000-999)
+    # D'D'D' = dew point temperature (000-999)
+    tdPattern = re.compile('T[01]\d{3}[01]\d{3}')
+    tdMatch = re.search(tdPattern, fText)KSGF 311352Z AUTO 24011KT 10SM BKN007 BKN016 16/14 A2954 RMK AO2 SLP994 T01610139
+    if tdMatch != None:
+        # if temp and dew point is reported, get the information
+        toString = ""
+        mText = tdMatch.group()
+
+        # strip literal 'T'
+        mText = mText[1:]
+
+        # get temperature and its sign, then strip that info from mText
+        temp = mText[1:4]
+        if mText[0] == 1:
+            toString += "\n\tTemperature: -" + temp + "ºC"
+        elif mText[0] == 0:
+            toString += "\n\tTemperature: " + temp + "ºC"
+        mText = mText[4:]
+
+        # get dew point and its sign
+        dp = mText[1:]
+        if mText[0] == 1:
+            toString += "\n\tDew Point: -" + dp + "ºC"
+        elif mText[0] == 0:
+            toString += "\n\tDew Point: " + dp + "ºC"
+
+        # store output in dictionary
+        d[key] = toString
+        return True
+    else:
+        return False
 
 # Program entry:
 if __name__ == "__main__":
@@ -311,8 +349,10 @@ if __name__ == "__main__":
     windGroup(metar, keys[3], fields)
     visibilityGroup(metar, keys[4], fields)
     runwayVisibilityRange(metar, keys[5], fields)
-    # presentWeather(metar, keys[5], fields) not implemented yet
+    # presentWeather(metar, keys[6], fields) not implemented yet
     skyCondition(metar, keys[7], fields)
+    tempDewPoint(metar, keys[8], fields)
+    #altimeter(metar, keys[9], fields) not implemented yet
     
 
     for k in keys:
