@@ -20,6 +20,43 @@ def getReading():
         reading = reading[6:]
     return reading
 
+def degreesToDirection(i):
+    # This function takes an integer, i, and converts it to the corresponding
+    # compass direction, d, where 0 degrees is N for North
+    if 0 <= i < 11 or 349 <= i < 360:
+        d = "N"
+    elif 11 <= i < 34:
+        d = "NNE"
+    elif 34 <= i < 56:
+        d = "NE"
+    elif 56 <= i < 79:
+        d = "ENE"
+    elif 79 <= i < 101:
+        d = "E"
+    elif 101 <= i < 124:
+        d = "ESE"
+    elif 124 <= i < 146:
+        d = "SE"
+    elif 146 <= i < 169:
+        d = "SSE"
+    elif 169 <= i < 191:
+        d = "S"
+    elif 191 <= i < 214:
+        d = "SSW"
+    elif 214 <= i < 236:
+        d = "SW"
+    elif 236 <= i < 259:
+        d = "WSW"
+    elif 259 <= i < 281:
+        d = "W"
+    elif 281 <= i < 304:
+        d = "WNW"
+    elif 304 <= i < 326:
+        d = "NW"
+    elif 326 <= i < 349:
+        d = "NNW"
+    return d
+
 def stationID(fText, key, d):
     # Looks for and culls station id information from metar string
     # Format: AAAA (four alpha chars)
@@ -107,10 +144,11 @@ def windGroup(fText, key, d):
         speedMatch = re.search(speedPattern, mText)
         if speedMatch != None:
             fff = int(speedMatch.group())
+            fff *= 1.15 #convert from km to mi
             if fff == 0:
                 toPrint += "\n\tSpeed: Calm (none to very light)"
             else:
-                toPrint += "\n\tSpeed: " + str(1.15*fff) + "mph"
+                toPrint += "\n\tSpeed: " + "%.f" % fff + "mph"
             mText = mText[speedMatch.end()+1:]
 
         # retrieve and strip wind gust info (Gmmm)           
@@ -119,7 +157,8 @@ def windGroup(fText, key, d):
         if gustMatch != None:
             # the G is a literal, so we're only interested in the speed (mmm)
             mmm = int(gustMatch.group()[1:])
-            toPrint += "\n\tWind gusts of up to " + str(1.15*mmm) + "mph"
+            mmm *= 1.15 #convert from km to mi
+            toPrint += "\n\tWind gusts of up to " + "%.f" % mmm + "mph"
             mText = mText[gustMatch.end()+1:]
 
         # strip 'KT' if it is there (it should be there in a valid wind field)
