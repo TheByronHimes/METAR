@@ -6,19 +6,10 @@ FILES: metar.py
 '''
 
 import re
+import metarScrape
 
 # define a dictionary to label the fields dynamically
 fields = {}
-
-def getReading():
-    # this function prompts the user to enter the metar report string
-    # will modify later to provide options for file input or CL input
-    reading = input("Enter METAR reading: ").upper()
-
-    # strip the METAR or SPECI report type info
-    if ("METAR" or "SPECI") in reading:
-        reading = reading[6:]
-    return reading
 
 def degreesToDirection(i):
     # This function takes an integer, i, and converts it to the corresponding
@@ -372,41 +363,51 @@ def tempDewPoint(fText, key, d):
 
 # Program entry:
 if __name__ == "__main__":
+    loopBool = "c"
 
-    # get raw metar reading
-    metar = getReading()
+    # choose station
+    station = input("Enter station ID for report source: ")
 
-    # list of ordered dict keys
-    keys = [
-        "Station ID: ",
-        "Date and Time of Report: ",
-        "Report Modifier: ",
-        "Wind: ",
-        "Visibility: ",
-        "Runway Visual Range: ",
-        "Present Weather: ",
-        "Sky Condition: ",
-        "Temperature and Dew Point: ",
-        "Altimeter: ",
-        "Remarks: "
-    ]
+    while loopBool == "c":
+        
+        # get raw metar reading
+        metar = metarScrape.getReport(station)
+        print(metar)
 
-    fields = {}
+        # list of ordered dict keys
+        keys = [
+            "Station ID: ",
+            "Date and Time of Report: ",
+            "Report Modifier: ",
+            "Wind: ",
+            "Visibility: ",
+            "Runway Visual Range: ",
+            "Present Weather: ",
+            "Sky Condition: ",
+            "Temperature and Dew Point: ",
+            "Altimeter: ",
+            "Remarks: "
+        ]
 
-    stationID(metar, keys[0], fields)
-    dateTime(metar, keys[1], fields)
-    reportModifier(metar, keys[2], fields)
-    windGroup(metar, keys[3], fields)
-    visibilityGroup(metar, keys[4], fields)
-    runwayVisibilityRange(metar, keys[5], fields)
-    # presentWeather(metar, keys[6], fields) not implemented yet
-    skyCondition(metar, keys[7], fields)
-    tempDewPoint(metar, keys[8], fields)
-    #altimeter(metar, keys[9], fields) not implemented yet
-    
+        fields = {}
 
-    for k in keys:
-        if k in fields.keys():
-            print(k, fields[k])
+        stationID(metar, keys[0], fields)
+        dateTime(metar, keys[1], fields)
+        reportModifier(metar, keys[2], fields)
+        windGroup(metar, keys[3], fields)
+        visibilityGroup(metar, keys[4], fields)
+        runwayVisibilityRange(metar, keys[5], fields)
+        # presentWeather(metar, keys[6], fields) not implemented yet
+        skyCondition(metar, keys[7], fields)
+        tempDewPoint(metar, keys[8], fields)
+        #altimeter(metar, keys[9], fields) not implemented yet
 
-x = input("\n\n\t\tPress key to continue")
+        print('\n---------------------------------------------------------\n')
+        for k in keys:
+            if k in fields.keys():
+                print(k, fields[k])
+                
+        # ask user if they would like to refresh the data
+        loopBool = input("Enter 'c' to continue or any other letter to stop: ")
+        
+        
