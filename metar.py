@@ -131,11 +131,11 @@ def windGroup(fText, key, d):
             if ddd == "VRB":
                 ddd = "Variable"
             toPrint += "\n\tDirection: " + degreesToDirection(int(ddd))
-            mText = mText[dirMatch.end()+1:]
+            mText = mText[dirMatch.end():]
 
         # retrieve and strip wind speed info (ff(f))
         speedPattern = re.compile('(\d{2,3})')
-        speedMatch = re.search(speedPattern, mText)
+        speedMatch = re.match(speedPattern, mText) # use match, going L to R
         if speedMatch != None:
             fff = int(speedMatch.group())
             fff *= 1.15 #convert from km to mi
@@ -143,17 +143,18 @@ def windGroup(fText, key, d):
                 toPrint += "\n\tSpeed: Calm (none to very light)"
             else:
                 toPrint += "\n\tSpeed: " + "%.f" % fff + "mph"
-            mText = mText[speedMatch.end()+1:]
+            mText = mText[speedMatch.end():]
 
         # retrieve and strip wind gust info (Gmmm)           
         gustPattern = re.compile('(G\d{2,3})')
         gustMatch = re.search(gustPattern, mText)
+        print('after stripping speed: ',mText)
         if gustMatch != None:
             # the G is a literal, so we're only interested in the speed (mmm)
             mmm = int(gustMatch.group()[1:])
             mmm *= 1.15 #convert from km to mi
             toPrint += "\n\tWind gusts of up to " + "%.f" % mmm + "mph"
-            mText = mText[gustMatch.end()+1:]
+            mText = mText[gustMatch.end():]
 
         # strip 'KT' if it is there (it should be there in a valid wind field)
         kt_loc = mText.find("KT")
