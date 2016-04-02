@@ -366,6 +366,28 @@ def tempDewPoint(fText, key, d):
     else:
         return False
 
+def altimeter(fText, key, d):
+    # Looks for and culls altimeter data from metar string
+    # Format: APPPP
+    # A = string literal indicating "Altimeter in inches of mercury"
+    # PPPP = four digit group representing PP.PPin hg (decimal excluded)
+    altPattern = re.compile('A\d{4}')
+    altMatch = re.search(altPattern, fText)
+    print("got this far")
+
+    if altMatch != None:
+        toString = ""
+        mText = altMatch.group()
+        reading = float(mText[1:])/100
+        toString = "\n\tAltimeter: %.2f" % reading + "in"
+
+        # store output
+        d[key] = toString
+        return True
+    else:
+        return False
+        
+
 # Program entry:
 if __name__ == "__main__":
     loopBool = "c"
@@ -405,7 +427,7 @@ if __name__ == "__main__":
         # presentWeather(metar, keys[6], fields) not implemented yet
         skyCondition(metar, keys[7], fields)
         tempDewPoint(metar, keys[8], fields)
-        #altimeter(metar, keys[9], fields) not implemented yet
+        altimeter(metar, keys[9], fields)
 
         print('\n---------------------------------------------------------\n')
         for k in keys:
