@@ -347,9 +347,13 @@ def tempDewPoint(fText, key, d):
 
         # get dew point and its sign
         dp_Celcius = float(mText[1:])/10
-        dp_Fahrenheit = dp_Celcius * (9/5) + 32
+        dp_Fahrenheit = dp_Celcius * (9/5) + 32.
+
+        # for the sign, 1 = -, 0 = +
         if mText[0] == '1':
-            toString += "\n\tDew Point: -" + str(dp_Celcius) + "ºC, "
+            dp_Celcius *= -1
+            dp_Fahrenheit = dp_Celcius * (9/5) + 32
+            toString += "\n\tDew Point: " + str(dp_Celcius) + "ºC, "
             toString += "%.f" % dp_Fahrenheit + "ºF"
         elif mText[0] == '0':
             toString += "\n\tDew Point: " + str(dp_Celcius) + "ºC, "
