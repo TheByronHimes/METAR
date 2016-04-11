@@ -21,6 +21,16 @@ if __name__ == "__main__":
 
     # get metar report and put it into a Metar object
     report = metar.Metar(metar_scrape.getReport(targetStation))
+
+    stationID = interpreter.stationID(report.getStationID())
+    dateTime = interpreter.dateTime(report.getDateTime())
+    modifier = interpreter.reportModifier(report.getModifier())
+    windGroup = interpreter.windGroup(report.getWind())
+    visibility = interpreter.visibilityGroup(report.getVisibility())
+    runwayVisibility = interpreter.runwayVisibilityRange(report.getRunway())
+    skyConditions = interpreter.skyCondition(report.getSky())
+    tempDewPoint = interpreter.tempDewPoint(report.getTempDewPoint())
+    altimeter = interpreter.altimeter(report.getAltimeter())
     
     
     '''
@@ -35,20 +45,7 @@ if __name__ == "__main__":
         metar = metarScrape.getReport(station)
         print(metar)
 
-        # list of ordered dict keys
-        keys = [
-            "Station ID: ",
-            "Date and Time of Report: ",
-            "Report Modifier: ",
-            "Wind: ",
-            "Visibility: ",
-            "Runway Visual Range: ",
-            "Present Weather: ",
-            "Sky Condition: ",
-            "Temperature and Dew Point: ",
-            "Altimeter: ",
-            "Remarks: "
-        ]
+        
 
         fields = {}
 
