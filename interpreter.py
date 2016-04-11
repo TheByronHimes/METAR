@@ -147,23 +147,15 @@ def visibilityGroup(fText, key, d):
     #     4 3/4
     #     1/4
     # SM = literal meaning "Statute Miles"
-    visPattern = re.compile(
-        'M?(([1-9]\s[1-9]/[1-9])|([1-9]/[1-9])|(\d{1,2}))SM'
-    )
-    visMatch = re.search(visPattern, fText)
-    if visMatch != None:
-        toPrint = ""
-        mText = visMatch.group()
-        mText = mText[:mText.find("SM")]
-        m_loc = mText.find("M")
-        if m_loc > -1:
-            toPrint += "Less than " + mText[m_loc+1:] + " statute miles"
-        elif m_loc == -1:
-            toPrint += "\n\t" + mText + " statute miles"
-        d[key] = toPrint
-        return True
-    else:
-        return False
+    toPrint = ""
+    text = visMatch.group()
+    text = text[:mText.find("SM")]
+    m_loc = text.find("M")
+    if m_loc > -1:
+        toPrint += "Less than " + text[m_loc+1:] + " statute miles"
+    elif m_loc == -1:
+        toPrint += "\n\t" + text + " statute miles"
+    return toPrint
 
 def runwayVisibilityRange(fText, key, d):
     # Looks for and culls the runway visibility information from metar string
