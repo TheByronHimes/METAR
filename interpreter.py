@@ -1,16 +1,11 @@
 '''
 AUTHOR: Byron Himes
 MODIFIED: 11 April 2016
-DESCRIPTION: Takes a METAR reading as input and outputs the interpretation (meaning).
-FILES: metar_interpreter.py, metar.py, metar_scrape.py
+DESCRIPTION: A set of functions to interpret METAR report fields.
+FILES: metar_interpreter.py
 '''
 
 import re
-import metar_scrape
-import metar
-
-# define a dictionary to label the fields dynamically
-fields = {}
 
 def degreesToDirection(i):
     # This function takes an integer, i, and converts it to the corresponding
@@ -52,53 +47,34 @@ def degreesToDirection(i):
         d = "NNW"
     return d
 
-def stationID(fText, key, d):
-    # Looks for and culls station id information from metar string
-    # Format: AAAA (four alpha chars)
-    idPattern = re.compile('[A-Z]{4}\s')
-    match = re.search(idPattern, fText)
-    if match != None:
-        d[key] = "\n\t" + match.group()
-        return True
-    else:
-        return False
+def stationID(text):
+    # Translates station ID from raw to readable
+    toPrint = "Station ID: " + text.upper()
+    return toPrint
 
-def dateTime(fText, key, d):
-    # Looks for and culls date & time information from metar string
+def dateTime(text):
+    # Translates date and time from raw to readable
     # Format: DDTTttZ
     # DD = day of the month (01 - 31)
     # TT = hour of the report (00 - 23)
     # tt = minute of the report (00 - 59)
     # Z is a string literal which indicates Zulu time.
-    dtPattern = re.compile('([0-3]\d)([0-2]\d[0-5]\d)Z')
-    match = re.search(dtPattern, fText)
-    
-    if match != None:
-        toPrint = ""
-        mText = match.group()
-        day = mText[0:2]
-        hour = mText[2:4]
-        minute = mText[4:6]
-        toPrint += "\n\tDay of Month: " + day
-        toPrint += "\n\tTime: " + hour + ":" + minute
-        d[key] = toPrint
-        return True
-    else:
-        return False
+    toPrint = ""
+    day = text[0:2] # this is not a secure way of getting the info
+    hour = text[2:4]
+    minute = text[4:6]
+    toPrint += "Day of Month: " + day
+    toPrint += "\nTime: " + hour + ":" + minute
+    return toPrint
 
-def reportModifier(fText, key, d):
-    # Looks for and culls report modifier information from metar string
+def reportModifier(text):
+    # Translates report modifier from raw to readable
     # Values: "AUTO" or "COR"
-    modPattern = re.compile('(AUTO|COR)')
-    match = re.search(modPattern, fText)
-    if match != None:
-        d[key] = "\n\t" + match.group()
-        return True
-    else:
-        return False
+    toPrint = "Report Modifier: " + text.upper()
+    
 
 def windGroup(fText, key, d):
-    # Looks for and culls wind group information from metar string
+    # Translates wind group information from raw to readable
     # Format: dddff(f)GmmmKT_nnnVxxx
     # ddd = wind direction (000 - 369) OR "VRB"
     # ff(f) = wind speed (00-999)
@@ -110,13 +86,6 @@ def windGroup(fText, key, d):
     # V = string literal indicating "variable" (haha)
     # xxx = upper end of variability range (000 - 359)
 
-    # try to match the entire field set first
-    windPattern = re.compile(
-        '((VRB|[0-3]\d{1,2})(\d{2,3})(G\d{2,3})?KT|00000KT)(\s[0-3]\d{1,2}V[0-3]\d{1,2})?'
-    )
-    match = re.search(windPattern, fText)
-
-    # if found, break it down into its subgroups for easy printing later
     # go left to right, stripping off the information as we get it
     if match != None:
         toPrint = ""
@@ -389,53 +358,6 @@ def altimeter(fText, key, d):
         return False
         
 
-# Program entry:
-if __name__ == "__main__":
-    loopBool = "c"
 
-    # choose station
-    station = input("Enter station ID for report source: ")
-
-    while loopBool == "c":
-        
-        # get raw metar reading
-        metar = metarScrape.getReport(station)
-        print(metar)
-
-        # list of ordered dict keys
-        keys = [
-            "Station ID: ",
-            "Date and Time of Report: ",
-            "Report Modifier: ",
-            "Wind: ",
-            "Visibility: ",
-            "Runway Visual Range: ",
-            "Present Weather: ",
-            "Sky Condition: ",
-            "Temperature and Dew Point: ",
-            "Altimeter: ",
-            "Remarks: "
-        ]
-
-        fields = {}
-
-        stationID(metar, keys[0], fields)
-        dateTime(metar, keys[1], fields)
-        reportModifier(metar, keys[2], fields)
-        windGroup(metar, keys[3], fields)
-        visibilityGroup(metar, keys[4], fields)
-        runwayVisibilityRange(metar, keys[5], fields)
-        # presentWeather(metar, keys[6], fields) not implemented yet
-        skyCondition(metar, keys[7], fields)
-        tempDewPoint(metar, keys[8], fields)
-        altimeter(metar, keys[9], fields)
-
-        print('\n---------------------------------------------------------\n')
-        for k in keys:
-            if k in fields.keys():
-                print(k, fields[k])
-                
-        # ask user if they would like to refresh the data
-        loopBool = input("Enter 'c' to continue or any other letter to stop: ")
         
         
