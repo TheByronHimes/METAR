@@ -87,62 +87,56 @@ def windGroup(fText, key, d):
     # xxx = upper end of variability range (000 - 359)
 
     # go left to right, stripping off the information as we get it
-    if match != None:
-        toPrint = ""
-        mText = match.group()
+    toPrint = ""
 
-        # retrieve and strip direction info (ddd)
-        dirPattern = re.compile('(VRB|[0-3]\d{1,2})')
-        dirMatch = re.search(dirPattern, mText)
-        if dirMatch != None:
-            ddd = dirMatch.group()
+    # retrieve and strip direction info (ddd)
+    dirPattern = re.compile('(VRB|[0-3]\d{1,2})')
+    dirMatch = re.search(dirPattern, text)
+    if dirMatch != None:
+        ddd = dirMatch.group()
 
-            # if ddd is VRB, change it to read "Variable" for the user's ease
-            if ddd == "VRB":
-                ddd = "Variable"
-            toPrint += "\n\tDirection: " + degreesToDirection(int(ddd))
-            mText = mText[dirMatch.end():]
+        # if ddd is VRB, change it to read "Variable" for the user's ease
+        if ddd == "VRB":
+            ddd = "Variable"
+        toPrint += "\nDirection: " + degreesToDirection(int(ddd))
+        text = text[dirMatch.end():]
 
-        # retrieve and strip wind speed info (ff(f))
-        speedPattern = re.compile('(\d{2,3})')
-        speedMatch = re.match(speedPattern, mText) # use match, going L to R
-        if speedMatch != None:
-            fff = int(speedMatch.group())
-            fff *= 1.15 #convert from km to mi
-            if fff == 0:
-                toPrint += "\n\tSpeed: Calm (none to very light)"
-            else:
-                toPrint += "\n\tSpeed: " + "%.f" % fff + "mph"
-            mText = mText[speedMatch.end():]
+    # retrieve and strip wind speed info (ff(f))
+    speedPattern = re.compile('(\d{2,3})')
+    speedMatch = re.match(speedPattern, text) # use match, going L to R
+    if speedMatch != None:
+        fff = int(speedMatch.group())
+        fff *= 1.15 #convert from km to mi
+        if fff == 0:
+            toPrint += "\nSpeed: Calm (none to very light)"
+        else:
+            toPrint += "\nSpeed: " + "%.f" % fff + "mph"
+        text = text[speedMatch.end():]
 
-        # retrieve and strip wind gust info (Gmmm)           
-        gustPattern = re.compile('(G\d{2,3})')
-        gustMatch = re.search(gustPattern, mText)
-        print('after stripping speed: ',mText)
-        if gustMatch != None:
-            # the G is a literal, so we're only interested in the speed (mmm)
-            mmm = int(gustMatch.group()[1:])
-            mmm *= 1.15 #convert from km to mi
-            toPrint += "\n\tWind gusts of up to " + "%.f" % mmm + "mph"
-            mText = mText[gustMatch.end():]
+    # retrieve and strip wind gust info (Gmmm)           
+    gustPattern = re.compile('(G\d{2,3})')
+    gustMatch = re.search(gustPattern, text)
+    if gustMatch != None:
+        # the G is a literal, so we're only interested in the speed (mmm)
+        mmm = int(gustMatch.group()[1:])
+        mmm *= 1.15 #convert from km to mi
+        toPrint += "\nWind gusts of up to " + "%.f" % mmm + "mph"
+        text = text[gustMatch.end():]
 
-        # strip 'KT' if it is there (it should be there in a valid wind field)
-        kt_loc = mText.find("KT")
-        if kt_loc > -1:
-            mText = mText[kt_loc + 2:]
+    # strip 'KT' if it is there (it should be there in a valid wind field)
+    kt_loc = text.find("KT")
+    if kt_loc > -1:
+        text = text[kt_loc + 2:]
 
-        # retrieve and strip variable wind range info (nnnVxxx)
-        vrbPattern = re.compile('([0-3]\d{1,2}V[0-3]\d{1,2})')
-        vrbMatch = re.search(vrbPattern, mText)
-        if vrbMatch != None:
-            vrb = vrbMatch.group()
-            angle1 = vrb[:vrb.find('V')] + " degrees "
-            angle2 = vrb[vrb.find('V')+1:] + " degrees "
-            toPrint += "\n\tDirection varying from " + angle1 + "to " + angle2
-        d[key] = toPrint
-        return True
-    else:
-        return False
+    # retrieve and strip variable wind range info (nnnVxxx)
+    vrbPattern = re.compile('([0-3]\d{1,2}V[0-3]\d{1,2})')
+    vrbMatch = re.search(vrbPattern, text)
+    if vrbMatch != None:
+        vrb = vrbMatch.group()
+        angle1 = vrb[:vrb.find('V')] + " degrees "
+        angle2 = vrb[vrb.find('V')+1:] + " degrees "
+        toPrint += "\nDirection varying from " + angle1 + "to " + angle2
+    return toPrint
 
 def visibilityGroup(fText, key, d):
     # Looks for and culls visibility group information from metar string
