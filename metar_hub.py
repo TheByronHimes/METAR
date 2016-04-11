@@ -12,6 +12,18 @@ import metar_scrape
 
 # Program entry:
 if __name__ == "__main__":
+    try:
+        targetStation = sys.argv[1]
+    except IndexError:
+        print("Input 4-letter station id as command line arg")
+        print("Example usage: metar_hub.py ksgf")
+        exit(0)
+
+    # get metar report and put it into a Metar object
+    report = metar.Metar(metar_scrape.getReport(targetStation))
+    
+    
+    '''
     loopBool = "c"
 
     # choose station
@@ -58,3 +70,4 @@ if __name__ == "__main__":
                 
         # ask user if they would like to refresh the data
         loopBool = input("Enter 'c' to continue or any other letter to stop: ")
+        '''
