@@ -73,7 +73,7 @@ def reportModifier(text):
     toPrint = "Report Modifier: " + text.upper()
     
 
-def windGroup(fText, key, d):
+def windGroup(text):
     # Translates wind group information from raw to readable
     # Format: dddff(f)GmmmKT_nnnVxxx
     # ddd = wind direction (000 - 369) OR "VRB"
@@ -138,8 +138,8 @@ def windGroup(fText, key, d):
         toPrint += "\nDirection varying from " + angle1 + "to " + angle2
     return toPrint
 
-def visibilityGroup(fText, key, d):
-    # Looks for and culls visibility group information from metar string
+def visibilityGroup(text):
+    # Translates visibility group info from raw to readable
     # Format: VVVVVSM
     # VVVVV = whole numbers, fractions, or mixed fractions.
     #     example values:
@@ -147,18 +147,17 @@ def visibilityGroup(fText, key, d):
     #     4 3/4
     #     1/4
     # SM = literal meaning "Statute Miles"
-    toPrint = ""
-    text = visMatch.group()
+    toPrint = "Visibility: "
     text = text[:mText.find("SM")]
     m_loc = text.find("M")
     if m_loc > -1:
         toPrint += "Less than " + text[m_loc+1:] + " statute miles"
     elif m_loc == -1:
-        toPrint += "\n\t" + text + " statute miles"
+        toPrint += "\n" + text + " statute miles"
     return toPrint
 
-def runwayVisibilityRange(fText, key, d):
-    # Looks for and culls the runway visibility information from metar string
+def runwayVisibilityRange(text):
+    # Translates runway visibility group from raw to readable
     # 2 Formats: RDD(D)/VVVVFT or RDD(D)/nnnnVxxxxFT
     # R = string literal indicating that the runway number follows next
     # DD = integer indicating the runway number (00-99)
@@ -169,67 +168,52 @@ def runwayVisibilityRange(fText, key, d):
     # nnnn = lowest reportable value in feet
     # V = string literal separating lowest and highest values
     # xxxx = highest reportable value in feet
-    rvPattern = re.compile('(R\d{2}[CRL]?/\d{4}FT)|(R\d{2}[CRL]?/\d{4}V\d{4}FT)')
-    longPattern = re.compile('')
 
-    #try to match long pattern first, then short pattern
-    longMatch = re.search(longPattern, fText)
-    shortMatch = re.search(shortPattern, fText)
-    if longMatch == None and shortMatch == None:
-        return False
-    elif shortMatch != None:
+    # simple diff between formats is presence of literal 'V'
+    toPrint = ""
+    
+    if "V" not in text:
         # get short pattern data
-        toString = ""
-        mText = shortMatch.group()
-
         # strip the 'R' from the front of the string
-        mText = mText[1:]
+        text = text[1:]
 
         # retrieve and strip DD(D) info
-        DD = mText[:mText.find("/")]
-        mText = mText[mText.find("/")+1:]
-        toString += "\n\tRunway Number: " + DD
+        DD = text[:text.find("/")]
+        text = text[text.find("/")+1:]
+        toPrint += "\nRunway Number: " + DD
         
         # retrieve constant reportable value
-        VVVV = mText[:mText.find("FT")]
-        toString += "\n\tVisibility constant at: " + VVVV
-
-        # store output string in dictionary
-        d[key] = toString
-        return True
+        VVVV = text[:text.find("FT")]
+        toPrint += "\nVisibility constant at: " + VVVV
     
-    elif longMatch != None:
+    elif "V" in text:
         # get long pattern data
-        toString = ""
-        mText = longMatch.group()
-
         # strip the 'R' from the front of the string
-        mText = mText[1:]
+        text = text[1:]
 
         # retrieve and strip runway number info, DD(D)
-        DD = mText[:mText.find("/")]
-        mText = mText[mText.find("/")+1:]
-        toString += "\n\tRunway Number: " + DD
+        DD = text[:text.find("/")]
+        text = text[text.find("/")+1:]
+        toPrint += "\nRunway Number: " + DD
 
         # retrieve and strip lowest reportable value, nnnn
-        nnnn = mText[:mText.find("V")]
-        mText = mText[mText.find("V")+1:]
+        nnnn = text[:text.find("V")]
+        text = text[text.find("V")+1:]
 
         # retrieve highest reportable value, xxxx
-        xxxx = mText[:mText.find("FT")]
-        toString = "\n\tVisibility varying from " + nnnn + "ft - " + xxxx + "ft"
+        xxxx = text[:text.find("FT")]
+        toPrint = "\nVisibility varying from " + nnnn + "ft - " + xxxx + "ft"
+    return toPrint
 
-        # store output string in dictionary
-        d[key] = toString
-        return True
-
-def presentWeather(fText, key, d):
-    # Looks for and culls present weather group information from metar string
+def presentWeather(weathers):
+    # NOTE: expects weathers as a List
+    # Translates present weather group info from raw to readable
     # Format: w'w'
     pass
 
-def skyCondition(fText, key, d):
-    # Looks for and culls sky condition information from metar string
+def skyCondition(conditions):
+    # NOTE: expects conditions as a List
+    # Translates sky condition group info from raw to readable
     # Format: NNNhhh OR VVsss OR SKC|CLR
     # NNN = amount of sky cover (3 letters)
     # hhh = height of sky cover layer
@@ -238,40 +222,29 @@ def skyCondition(fText, key, d):
     # SKC = string literal used by manual stations = "clear skies"
     # CLR = string literal used by automated stations = "clear skies"
     # NOTE: may sky conditions groups may be present in the metar body
-
-    skyPattern = re.compile('[A-Z]{3}\d{3}')
-    vertPattern = re.compile('VV\d{3}')
-    clearPattern = re.compile('SKC|CLR')
-    skyMatches = re.findall(skyPattern, fText)
-    vertMatches = re.findall(vertPattern, fText)
-    clearMatches = re.findall(clearPattern, fText)
     
-    if len(skyMatches) == 0 and len(vertMatches) == 0 and len(clearMatches) == 0:
-        return False
-    else:
-        toString = ""
-        for i in skyMatches:
-            if i[:3] == "FEW":
-                toString += "\n\tFew clouds at "
-                toString += str(int(i[3:]) * 100) + "ft"
-            elif i[:3] == "SCT":
-                toString += "\n\tScattered clouds at "
-                toString += str(int(i[3:]) * 100) + "ft"
-            elif i[:3] == "BKN":
-                toString += "\n\tBroken clouds at "
-                toString += str(int(i[3:]) * 100) + "ft"
-            elif i[:3] == "OVC":
-                toString += "\n\tOvercast at "
-                toString += str(int(i[3:]) * 100) + "ft"
-        for i in vertMatches:
-            toString += "\n\tIndefinite ceiling with visibility up to "
-            toString += str(int(i[3:]) * 100) + "ft"
-        for i in clearMatches:
-            toString += "\n\tClear skies"
-        d[key] = toString
-        return True
+    toPrint = ""
+    for condition in conditions:
+        if condition[:3] == "FEW":
+            toPrint += "\nFew clouds at "
+            toPrint += str(int(condition[3:]) * 100) + "ft"
+        elif condition[:3] == "SCT":
+            toPrint += "\nScattered clouds at "
+            toPrint += str(int(condition[3:]) * 100) + "ft"
+        elif condition[:3] == "BKN":
+            toPrint += "\nBroken clouds at "
+            toPrint += str(int(condition[3:]) * 100) + "ft"
+        elif condition[:3] == "OVC":
+            toPrint += "\nOvercast at "
+            toPrint += str(int(condition[3:]) * 100) + "ft"
+        elif condition[:3] == ("CLR" or "SKC"):
+            toString += "\nClear skies"
+        else:
+            toPrint += "\nIndefinite ceiling with visibility up to "
+            toPrint += str(int(condition[3:]) * 100) + "ft"
+    return toPrint
 
-def tempDewPoint(fText, key, d):
+def tempDewPoint(text):
     # Looks for and culls temperature and dew point info from METAR (fText)
     # Format: TsT'T'T'sD'D'D'
     # NOTE: temps are reported in degrees celcius
@@ -322,7 +295,7 @@ def tempDewPoint(fText, key, d):
     else:
         return False
 
-def altimeter(fText, key, d):
+def altimeter(text):
     # Looks for and culls altimeter data from metar string
     # Format: APPPP
     # A = string literal indicating "Altimeter in inches of mercury"
@@ -342,8 +315,3 @@ def altimeter(fText, key, d):
         return True
     else:
         return False
-        
-
-
-        
-        
