@@ -245,73 +245,55 @@ def skyCondition(conditions):
     return toPrint
 
 def tempDewPoint(text):
-    # Looks for and culls temperature and dew point info from METAR (fText)
+    # Translate temp and dew point info from raw to readable
     # Format: TsT'T'T'sD'D'D'
     # NOTE: temps are reported in degrees celcius
     # T = string literal indicating "temperature"
     # s = sign of the temperature and dew point (1 for - or 0 for -)
     # T'T'T' = temperature (000-999)
     # D'D'D' = dew point temperature (000-999)
-    tdPattern = re.compile('T[01]\d{3}[01]\d{3}')
-    tdMatch = re.search(tdPattern, fText)
-    if tdMatch != None:
-        # if temp and dew point is reported, get the information
-        toString = ""
-        mText = tdMatch.group()
+    
+    # if temp and dew point is reported, get the information
+    toPrint = ""
+    
+    # strip literal 'T'
+    text = text[1:]
 
-        # strip literal 'T'
-        mText = mText[1:]
+    # get temperature and its sign, then strip that info from mText
+    if text[0] == '1':
+        temp_Celcius = -1 * float(text[1:4])/10
+        temp_Fahrenheit = temp_Celcius * (9/5) + 32
+        toPrint += "\nTemperature: " + str(temp_Celcius) + "ºC, "
+        toPrint += "%.f" % temp_Fahrenheit + "ºF"
+    elif text[0] == '0':
+        temp_Celcius = float(text[1:4])/10
+        temp_Fahrenheit = temp_Celcius * (9/5) + 32
+        toPrint += "\nTemperature: " + str(temp_Celcius) + "ºC, "
+        toPrint += "%.f" % temp_Fahrenheit + "ºF"
+    text = text[4:]
 
-        # get temperature and its sign, then strip that info from mText
-        if mText[0] == '1':
-            temp_Celcius = -1 * float(mText[1:4])/10
-            temp_Fahrenheit = temp_Celcius * (9/5) + 32
-            toString += "\n\tTemperature: " + str(temp_Celcius) + "ºC, "
-            toString += "%.f" % temp_Fahrenheit + "ºF"
-        elif mText[0] == '0':
-            temp_Celcius = float(mText[1:4])/10
-            temp_Fahrenheit = temp_Celcius * (9/5) + 32
-            toString += "\n\tTemperature: " + str(temp_Celcius) + "ºC, "
-            toString += "%.f" % temp_Fahrenheit + "ºF"
-        mText = mText[4:]
+    # get dew point and its sign
+    dp_Celcius = float(mText[1:])/10
+    dp_Fahrenheit = dp_Celcius * (9/5) + 32.
 
-        # get dew point and its sign
-        dp_Celcius = float(mText[1:])/10
-        dp_Fahrenheit = dp_Celcius * (9/5) + 32.
-
-        # for the sign, 1 = -, 0 = +
-        if mText[0] == '1':
-            dp_Celcius *= -1
-            dp_Fahrenheit = dp_Celcius * (9/5) + 32
-            toString += "\n\tDew Point: " + str(dp_Celcius) + "ºC, "
-            toString += "%.f" % dp_Fahrenheit + "ºF"
-        elif mText[0] == '0':
-            toString += "\n\tDew Point: " + str(dp_Celcius) + "ºC, "
-            toString += "%.f" % dp_Fahrenheit + "ºF"
-
-        # store output in dictionary
-        d[key] = toString
-        return True
-    else:
-        return False
+    # for the sign, 1 = -, 0 = +
+    if text[0] == '1':
+        dp_Celcius *= -1
+        dp_Fahrenheit = dp_Celcius * (9/5) + 32
+        toPrint += "\nDew Point: " + str(dp_Celcius) + "ºC, "
+        toPrint += "%.f" % dp_Fahrenheit + "ºF"
+    elif text[0] == '0':
+        toPrint += "\nDew Point: " + str(dp_Celcius) + "ºC, "
+        toPrint += "%.f" % dp_Fahrenheit + "ºF"
+    return toPrint
 
 def altimeter(text):
-    # Looks for and culls altimeter data from metar string
+    # Translates altimeter info from raw to readable
     # Format: APPPP
     # A = string literal indicating "Altimeter in inches of mercury"
     # PPPP = four digit group representing PP.PPin hg (decimal excluded)
-    altPattern = re.compile('A\d{4}')
-    altMatch = re.search(altPattern, fText)
-    print("got this far")
 
-    if altMatch != None:
-        toString = ""
-        mText = altMatch.group()
-        reading = float(mText[1:])/100
-        toString = "\n\tAltimeter: %.2f" % reading + "in"
-
-        # store output
-        d[key] = toString
-        return True
-    else:
-        return False
+    toPrint = ""
+    reading = float(text[1:])/100
+    toPrint = "\n\tAltimeter: %.2f" % reading + "in"
+    return toPrint
