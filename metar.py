@@ -67,13 +67,19 @@ class Metar:
         # Present weather group not implemented
 
         # Sky Condition Groups
-        skyPattern = re.compile('[A-Z]{3}\d{3}')
+        fewPattern = re.compile('FEW\d{3}')
+        sctPattern = re.compile('SCT\d{3}')
+        bknPattern = re.compile('BKN\d{3}')
+        ovcPattern = re.compile('OVC\d{3}')
         vertPattern = re.compile('VV\d{3}')
         clearPattern = re.compile('SKC|CLR')
-        skyMatches = re.findall(skyPattern, reportText)
+        fewMatches = re.findall(fewPattern, reportText)
+        sctMatches = re.findall(sctPattern, reportText)
+        bknMatches = re.findall(bknPattern, reportText)
+        ovcMatches = re.findall(ovcPattern, reportText)
         vertMatches = re.findall(vertPattern, reportText)
         clearMatches = re.findall(clearPattern, reportText)
-        self.sky = skyMatches + vertMatches + clearMatches
+        self.sky = fewMatches + sctMatches + bknMatches + ovcMatches + vertMatches + clearMatches
 
         # Temperature and Dew Point
         tdPattern = re.compile('T[01]\d{3}[01]\d{3}')

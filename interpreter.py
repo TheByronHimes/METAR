@@ -64,7 +64,7 @@ def dateTime(text):
     hour = text[2:4]
     minute = text[4:6]
     toPrint += "Day of Month: " + day
-    toPrint += "\nTime: " + hour + ":" + minute
+    toPrint += "\tTime: " + hour + ":" + minute
     return toPrint
 
 def reportModifier(text):
@@ -87,7 +87,7 @@ def windGroup(text):
     # xxx = upper end of variability range (000 - 359)
 
     # go left to right, stripping off the information as we get it
-    toPrint = ""
+    toPrint = "Wind:"
 
     # retrieve and strip direction info (ddd)
     dirPattern = re.compile('(VRB|[0-3]\d{1,2})')
@@ -98,7 +98,7 @@ def windGroup(text):
         # if ddd is VRB, change it to read "Variable" for the user's ease
         if ddd == "VRB":
             ddd = "Variable"
-        toPrint += "\nDirection: " + degreesToDirection(int(ddd))
+        toPrint += "\n\tDirection: " + degreesToDirection(int(ddd))
         text = text[dirMatch.end():]
 
     # retrieve and strip wind speed info (ff(f))
@@ -108,9 +108,9 @@ def windGroup(text):
         fff = int(speedMatch.group())
         fff *= 1.15 #convert from km to mi
         if fff == 0:
-            toPrint += "\nSpeed: Calm (none to very light)"
+            toPrint += "\n\tSpeed: Calm (none to very light)"
         else:
-            toPrint += "\nSpeed: " + "%.f" % fff + "mph"
+            toPrint += "\n\tSpeed: " + "%.f" % fff + "mph"
         text = text[speedMatch.end():]
 
     # retrieve and strip wind gust info (Gmmm)           
@@ -120,7 +120,7 @@ def windGroup(text):
         # the G is a literal, so we're only interested in the speed (mmm)
         mmm = int(gustMatch.group()[1:])
         mmm *= 1.15 #convert from km to mi
-        toPrint += "\nWind gusts of up to " + "%.f" % mmm + "mph"
+        toPrint += "\n\tWind gusts of up to " + "%.f" % mmm + "mph"
         text = text[gustMatch.end():]
 
     # strip 'KT' if it is there (it should be there in a valid wind field)
@@ -135,7 +135,7 @@ def windGroup(text):
         vrb = vrbMatch.group()
         angle1 = vrb[:vrb.find('V')] + " degrees "
         angle2 = vrb[vrb.find('V')+1:] + " degrees "
-        toPrint += "\nDirection varying from " + angle1 + "to " + angle2
+        toPrint += "\n\tDirection varying from " + angle1 + "to " + angle2
     return toPrint
 
 def visibilityGroup(text):
@@ -148,12 +148,12 @@ def visibilityGroup(text):
     #     1/4
     # SM = literal meaning "Statute Miles"
     toPrint = "Visibility: "
-    text = text[:mText.find("SM")]
+    text = text[:text.find("SM")]
     m_loc = text.find("M")
     if m_loc > -1:
         toPrint += "Less than " + text[m_loc+1:] + " statute miles"
     elif m_loc == -1:
-        toPrint += "\n" + text + " statute miles"
+        toPrint += text + " statute miles"
     return toPrint
 
 def runwayVisibilityRange(text):
@@ -170,7 +170,7 @@ def runwayVisibilityRange(text):
     # xxxx = highest reportable value in feet
 
     # simple diff between formats is presence of literal 'V'
-    toPrint = ""
+    toPrint = "Runway Visibility: "
     
     if "V" not in text:
         # get short pattern data
@@ -180,11 +180,11 @@ def runwayVisibilityRange(text):
         # retrieve and strip DD(D) info
         DD = text[:text.find("/")]
         text = text[text.find("/")+1:]
-        toPrint += "\nRunway Number: " + DD
+        toPrint += "\n\tRunway Number: " + DD
         
         # retrieve constant reportable value
         VVVV = text[:text.find("FT")]
-        toPrint += "\nVisibility constant at: " + VVVV
+        toPrint += "\n\tVisibility constant at: " + VVVV
     
     elif "V" in text:
         # get long pattern data
@@ -194,7 +194,7 @@ def runwayVisibilityRange(text):
         # retrieve and strip runway number info, DD(D)
         DD = text[:text.find("/")]
         text = text[text.find("/")+1:]
-        toPrint += "\nRunway Number: " + DD
+        toPrint += "\n\tRunway Number: " + DD
 
         # retrieve and strip lowest reportable value, nnnn
         nnnn = text[:text.find("V")]
@@ -202,7 +202,7 @@ def runwayVisibilityRange(text):
 
         # retrieve highest reportable value, xxxx
         xxxx = text[:text.find("FT")]
-        toPrint = "\nVisibility varying from " + nnnn + "ft - " + xxxx + "ft"
+        toPrint = "\n\tVisibility varying from " + nnnn + "ft - " + xxxx + "ft"
     return toPrint
 
 def presentWeather(weathers):
@@ -223,24 +223,25 @@ def skyCondition(conditions):
     # CLR = string literal used by automated stations = "clear skies"
     # NOTE: may sky conditions groups may be present in the metar body
     
-    toPrint = ""
+    toPrint = "Sky Conditions:"
     for condition in conditions:
+        print(condition)
         if condition[:3] == "FEW":
-            toPrint += "\nFew clouds at "
+            toPrint += "\n\tFew clouds at "
             toPrint += str(int(condition[3:]) * 100) + "ft"
         elif condition[:3] == "SCT":
-            toPrint += "\nScattered clouds at "
+            toPrint += "\n\tScattered clouds at "
             toPrint += str(int(condition[3:]) * 100) + "ft"
         elif condition[:3] == "BKN":
-            toPrint += "\nBroken clouds at "
+            toPrint += "\n\tBroken clouds at "
             toPrint += str(int(condition[3:]) * 100) + "ft"
         elif condition[:3] == "OVC":
-            toPrint += "\nOvercast at "
+            toPrint += "\n\tOvercast at "
             toPrint += str(int(condition[3:]) * 100) + "ft"
         elif condition[:3] == ("CLR" or "SKC"):
-            toString += "\nClear skies"
+            toString += "\n\tClear skies"
         else:
-            toPrint += "\nIndefinite ceiling with visibility up to "
+            toPrint += "\n\tIndefinite ceiling with visibility up to "
             toPrint += str(int(condition[3:]) * 100) + "ft"
     return toPrint
 
@@ -254,7 +255,7 @@ def tempDewPoint(text):
     # D'D'D' = dew point temperature (000-999)
     
     # if temp and dew point is reported, get the information
-    toPrint = ""
+    toPrint = "Temperature and Dew Point:"
     
     # strip literal 'T'
     text = text[1:]
@@ -263,27 +264,27 @@ def tempDewPoint(text):
     if text[0] == '1':
         temp_Celcius = -1 * float(text[1:4])/10
         temp_Fahrenheit = temp_Celcius * (9/5) + 32
-        toPrint += "\nTemperature: " + str(temp_Celcius) + "ºC, "
+        toPrint += "\n\tTemperature: " + str(temp_Celcius) + "ºC, "
         toPrint += "%.f" % temp_Fahrenheit + "ºF"
     elif text[0] == '0':
         temp_Celcius = float(text[1:4])/10
         temp_Fahrenheit = temp_Celcius * (9/5) + 32
-        toPrint += "\nTemperature: " + str(temp_Celcius) + "ºC, "
+        toPrint += "\n\tTemperature: " + str(temp_Celcius) + "ºC, "
         toPrint += "%.f" % temp_Fahrenheit + "ºF"
     text = text[4:]
 
     # get dew point and its sign
-    dp_Celcius = float(mText[1:])/10
+    dp_Celcius = float(text[1:])/10
     dp_Fahrenheit = dp_Celcius * (9/5) + 32.
 
     # for the sign, 1 = -, 0 = +
     if text[0] == '1':
         dp_Celcius *= -1
         dp_Fahrenheit = dp_Celcius * (9/5) + 32
-        toPrint += "\nDew Point: " + str(dp_Celcius) + "ºC, "
+        toPrint += "\n\tDew Point: " + str(dp_Celcius) + "ºC, "
         toPrint += "%.f" % dp_Fahrenheit + "ºF"
     elif text[0] == '0':
-        toPrint += "\nDew Point: " + str(dp_Celcius) + "ºC, "
+        toPrint += "\n\tDew Point: " + str(dp_Celcius) + "ºC, "
         toPrint += "%.f" % dp_Fahrenheit + "ºF"
     return toPrint
 
@@ -295,5 +296,5 @@ def altimeter(text):
 
     toPrint = ""
     reading = float(text[1:])/100
-    toPrint = "\n\tAltimeter: %.2f" % reading + "in"
+    toPrint = "Altimeter: %.2f" % reading + "in"
     return toPrint
