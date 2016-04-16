@@ -7,7 +7,7 @@ FILES: metar_hub.py, interpreter.py, metar.py, metar_scrape.py
 
 import sys
 import interpreter
-import metar
+from metar import Metar
 import metar_scrape
 
 # Program entry:
@@ -20,7 +20,7 @@ if __name__ == "__main__":
         exit(0)
 
     # get metar report and put it into a Metar object
-    report = metar.Metar(metar_scrape.getReport(targetStation))
+    report = Metar(metar_scrape.getReport(targetStation))
 
     components = [
     interpreter.stationID(report.getStationID()),
